@@ -1,4 +1,5 @@
 .idea/
 venv/
+test_db.py
 deleted:   README.md
 *.csv

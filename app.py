@@ -1,15 +1,20 @@
 # pylint: disable=missing-module-docstring
-
+import logging
+import os
 import duckdb
 import streamlit as st
-import ast
 import pandas as pd
 
 
-#ANSWER_STR = """
-#SELECT * FROM beverages
-#CROSS JOIN food_items
-#"""
+if "data" not in os.listdir():
+    print("creating folder data")
+    logging.error(os.listdir())
+    logging.error("creating folder data")
+    os.mkdir("data")
+
+if "exercises_sql_tables.duckdb" not in os.listdir("data"):
+    exec(open("init_db.py").read())
+    # subprocess.run(["python", "init_db.py"])
 
 # Connexion à la base de données DuckDB
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
@@ -26,7 +31,7 @@ with st.sidebar:
     )
     st.write("You selected:", theme)
 
-    exercise = con.execute(f"SELECT * FROM memory_state WHERE theme = '{theme}'").df()
+    exercise = con.execute(f"SELECT * FROM memory_state WHERE theme = '{theme}'").df().sort_values("last_reviewed").reset_index()
     st.write(exercise)
 
     exercise_name = exercise.loc[0, "exercise_name"]
@@ -57,14 +62,14 @@ if query:
 tab2, tab3 = st.tabs(["Tables", "Solution"])
 
 with tab2:
-    exercise_tables = ast.literal_eval(exercise.loc[0, "tables"])
+    exercise_tables = exercise.loc[0, "tables"]
     for table in exercise_tables:
         st.write(f"table: {table}")
         df_table = con.execute(f"SELECT * FROM {table}").df()
         st.dataframe(df_table)
 
 with tab3:
-   exercise_name = exercise.loc[0, "exercise_name"]
-   with open(f"answers/{exercise_name}.sql") as f:
-       answer = f.read()
+#   exercise_name = exercise.loc[0, "exercise_name"]
+#   with open(f"answers/{exercise_name}.sql") as f:
+#       answer = f.read()
    st.write(answer)
